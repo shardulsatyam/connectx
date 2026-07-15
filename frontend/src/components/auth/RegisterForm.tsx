@@ -1,7 +1,55 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
+import { registerUser } from "../../api/auth";
 
 function RegisterForm() {
+  const navigate = useNavigate();
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!fullName || !email || !password || !confirmPassword) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await registerUser({
+        fullName,
+        email,
+        password,
+      });
+
+      console.log("REGISTER SUCCESS:", res.data);
+
+      alert(res.data.message || "Registration Successful");
+
+      navigate("/login");
+    } catch (error: any) {
+      console.error("REGISTER ERROR:", error);
+      console.error("RESPONSE:", error.response);
+      console.error("DATA:", error.response?.data);
+
+      alert(error.response?.data?.message || error.message || "Registration Failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-950">
       {/* Left Side */}
@@ -27,7 +75,7 @@ function RegisterForm() {
             Join ConnectX and start collaborating.
           </p>
 
-          <form className="mt-8 space-y-5">
+          <form onSubmit={handleRegister} className="mt-8 space-y-5">
             <div>
               <label className="mb-2 block text-sm text-slate-300">
                 Full Name
@@ -36,6 +84,8 @@ function RegisterForm() {
               <input
                 type="text"
                 placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
               />
             </div>
@@ -48,6 +98,8 @@ function RegisterForm() {
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
               />
             </div>
@@ -60,6 +112,8 @@ function RegisterForm() {
               <input
                 type="password"
                 placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
               />
             </div>
@@ -72,11 +126,15 @@ function RegisterForm() {
               <input
                 type="password"
                 placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-cyan-400"
               />
             </div>
 
-            <Button>Create Account</Button>
+            <Button type="submit">
+              {loading ? "Creating Account..." : "Create Account"}
+            </Button>
           </form>
 
           <p className="mt-6 text-center text-slate-400">
